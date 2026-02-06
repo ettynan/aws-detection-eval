@@ -1,0 +1,22 @@
+# Local Terraform files
+*.tfstate
+*.tfstate.*
+.terraform/
+
+# Sensitive files
+*.tfvars
+*.tfvars.json
+
+# IDE/Editor files (e.g., VSCode, IntelliJ)
+.vscode/
+.idea/
+
+# OS-generated files (macOS, Windows)
+.DS_Store
+Thumbs.db
+
+# Terraform plan files
+*.plan
+
+# Log files
+*.log
