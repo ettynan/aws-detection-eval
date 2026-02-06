@@ -1,6 +1,6 @@
 # AWS Detection Evaluation Project
 
-This repository contains infrastructure and documentation for a graduate project evaluating AWS-native security detection capabilities in a minimally configured environment.
+This repository contains infrastructure and documentation for a  project evaluating AWS-native security detection capabilities in a minimally configured environment.
 
 ## Project Scope
 - Provision a minimal AWS test environment using Terraform
@@ -14,3 +14,24 @@ This repository contains infrastructure and documentation for a graduate project
 
 ## Status
 - Milestone 1: Minimal AWS environment provisioned using Terraform (completed)
+
+## Milestone 1: Test Environment Provisioning and Baseline Verification
+
+Milestone 1 establishes a minimal, stable AWS test environment that serves as the foundation for all subsequent evaluation work. The purpose of this milestone is to verify that infrastructure provisioning functions correctly, that Terraform is authenticated to the intended AWS account, and that a small baseline environment exists before enabling any AWS-native detection services or executing threat simulations.
+
+The environment created during this milestone is intentionally minimal. No AWS-native security tooling is enabled, and no adversarial activity or misconfiguration is introduced at this stage. This milestone focuses exclusively on controlled setup and verification to ensure later observations can be attributed to detection tooling rather than infrastructure or configuration errors.
+
+## Completion Checklist
+
+- [x] AWS account created and accessible  
+- [x] Programmatic access configured via a dedicated IAM user for Terraform  
+- [x] Local AWS CLI profile configured and verified against the correct AWS account  
+- [x] Terraform project structure created and initialized  
+- [x] AWS provider configured with a pinned version to ensure reproducibility  
+- [x] Minimal AWS resources provisioned using Terraform:
+  - One S3 bucket with a globally unique name
+  - One baseline IAM user  
+- [x] Terraform plan and apply completed successfully with no unexpected changes  
+- [x] Resources verified to exist only in the intended AWS account  
+
+The test environment is now stable and ready for enabling AWS-native detection tools and performing controlled threat simulations in subsequent milestones.
