@@ -35,3 +35,18 @@ The environment created during this milestone is intentionally minimal. No AWS-n
 - [x] Resources verified to exist only in the intended AWS account  
 
 The test environment is now stable and ready for enabling AWS-native detection tools and performing controlled threat simulations in subsequent milestones.
+
+
+## Milestone 2: Enable AWS-Native Detection and Logging Services (Minimal)
+
+### Step 1: IAM Access Analyzer Enabled
+
+IAM Access Analyzer was enabled at the account scope using Terraform. This establishes baseline monitoring for external and cross-account access exposure across supported AWS resources. The analyzer operates at the account level and does not modify or attach to specific infrastructure resources.
+
+Terraform plan confirmed a single resource addition with no changes or replacements. Terraform apply completed successfully.
+
+**Verification:**
+- Access Analyzer status: Active
+- Scope: ACCOUNT
+- Region: us-west-2
+- No findings present at baseline
