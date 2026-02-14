@@ -137,5 +137,46 @@ This restricts log delivery to the specific CloudTrail trail.
   - `s3:PutObject`
   - `aws:SourceArn`
 - [x] Log files observed in S3 under `/AWSLogs/<account-id>/`
-- [x] No manual console configuration was required
+- [x] No manual console configuration was performed
 
+## Step 3: Enable AWS GuardDuty (Minimal)
+Enable AWS GuardDuty using Terraform with default configuration to provide account-level threat detection. This step activates GuardDuty in the current region without additional tuning or integrations.
+
+### Configuration Scope
+
+GuardDuty was configured with:
+
+- Single-account detector
+- Default data sources
+- No organization members
+- No suppression rules
+- No export destinations
+- No advanced protection plans enabled
+
+Only the GuardDuty detector resource was created.
+
+### Implementation
+
+GuardDuty was enabled using a minimal Terraform configuration:
+
+```hcl
+resource "aws_guardduty_detector" "main" {
+  enable = true
+}
+```
+
+This creates a regional GuardDuty detector and enables analysis of:
+
+- CloudTrail management events
+- VPC Flow Logs (if present)
+- DNS logs
+
+No manual console configuration was performed.
+
+**Verification**
+
+- [x] Terraform apply completed successfully (`1 added, 0 changed, 0 destroyed`)
+- [x] GuardDuty status shows **Enabled** in AWS Console
+- [x] Detector ID visible under GuardDuty → Settings
+- [x] No findings present (baseline state)
+- [x] No manual console configuration was performed
