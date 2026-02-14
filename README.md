@@ -55,7 +55,7 @@ The environment created during this milestone is intentionally minimal. No AWS-n
 The test environment is now stable and ready for enabling AWS-native detection tools and performing controlled threat simulations in subsequent milestones.
 
 
-## Milestone 2: Enable AWS-Native Detection and Logging Services (Minimal)
+## Milestone 2: Enable AWS-Native Detection and Logging Services 
 
 ### Step 1: IAM Access Analyzer Enabled
 
@@ -69,12 +69,12 @@ Terraform plan confirmed a single resource addition with no changes or replaceme
 - [x] Region: us-west-2
 - [x] No findings present at baseline
 
-##  Step 2: Enable AWS-Native Detection Services (CloudTrail)
+###  Step 2: Enable AWS-Native Detection Services (CloudTrail)
 
 
 Enable AWS CloudTrail using Terraform to capture management events only, with minimal configuration and no advanced tuning.
 
-### Configuration Scope
+#### Configuration Scope
 
 CloudTrail was configured with the following characteristics:
 
@@ -89,11 +89,11 @@ CloudTrail was configured with the following characteristics:
 
 ---
 
-### Implementation Notes
+#### Implementation Notes
 
 CloudTrail requires explicit S3 bucket permissions before it can be created. Two S3 policy validation errors occurred during implementation.
 
-#### Failure 1 – Missing S3 Bucket Policy 
+##### Failure 1 – Missing S3 Bucket Policy 
 
 CloudTrail could not write logs to the S3 bucket because no bucket policy existed allowing access.
 
@@ -107,7 +107,7 @@ Added a bucket policy granting the `cloudtrail.amazonaws.com` service principal 
 
 ---
 
-#### Failure 2 – Missing `aws:SourceArn` Condition
+##### Failure 2 – Missing `aws:SourceArn` Condition
 
 After adding basic permissions, AWS rejected the bucket policy as insufficient.
 
@@ -139,10 +139,10 @@ This restricts log delivery to the specific CloudTrail trail.
 - [x] Log files observed in S3 under `/AWSLogs/<account-id>/`
 - [x] No manual console configuration was performed
 
-## Step 3: Enable AWS GuardDuty (Minimal)
+### Step 3: Enable AWS GuardDuty (Minimal)
 Enable AWS GuardDuty using Terraform with default configuration to provide account-level threat detection. This step activates GuardDuty in the current region without additional tuning or integrations.
 
-### Configuration Scope
+#### Configuration Scope
 
 GuardDuty was configured with:
 
@@ -155,7 +155,7 @@ GuardDuty was configured with:
 
 Only the GuardDuty detector resource was created.
 
-### Implementation
+#### Implementation
 
 GuardDuty was enabled using a minimal Terraform configuration:
 
@@ -180,3 +180,50 @@ No manual console configuration was performed.
 - [x] Detector ID visible under GuardDuty → Settings
 - [x] No findings present (baseline state)
 - [x] No manual console configuration was performed
+
+### Step 4: Enable AWS Config
+
+#### Objective
+Enable AWS Config to record configuration changes for all supported resource types using:
+- A dedicated IAM service role
+- A configuration recorder
+- A delivery channel (existing S3 log bucket)
+- Recorder activation
+
+No Config rules, aggregators, or advanced options were configured.
+
+---
+
+#### Resources Created
+
+- IAM role: `aws-config-service-role`
+- Managed policy attachment: `AWS_ConfigRole`
+- Configuration recorder: `default`
+- Delivery channel (S3 bucket)
+- Recorder status enabled
+
+---
+
+#### Issues Encountered
+
+Two delivery channel errors occurred:
+
+1. **NoAvailableConfigurationRecorderException**
+   - Cause: Delivery channel attempted before recorder was fully available.
+   - Fix: Explicit dependency ordering (`depends_on`) to enforce creation sequence.
+
+2. **InsufficientDeliveryPolicyException**
+   - Cause: S3 bucket policy did not allow AWS Config to write.
+   - Fix: Added required S3 bucket policy statements:
+     - `s3:GetBucketAcl` for `config.amazonaws.com`
+     - `s3:PutObject` with `bucket-owner-full-control`
+
+---
+
+**Verification**
+
+- [x] AWS Config → Settings → Recorder shows **Recording is on**
+- [x] IAM role displayed under Governance: `aws-config-service-role`
+- [x] Data and delivery section shows correct S3 bucket
+- [x] Terraform apply completed successfully
+- [x] No Config rules configured
