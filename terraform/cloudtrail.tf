@@ -23,14 +23,21 @@ resource "aws_cloudtrail" "management_trail" {
 # - Check bucket ACL
 # - Write log files to the bucket
 #
-# Without this policy, CloudTrail creation fails.
+# AWS Config must ALSO have permission to:
+# - Check bucket ACL
+# - Write configuration snapshots
+#
+# Without these permissions, service creation fails.
 #############################################
 
 data "aws_caller_identity" "current" {}
 
 data "aws_iam_policy_document" "cloudtrail_s3_policy" {
 
+  #############################################
   # Allow CloudTrail to verify bucket ACL
+  #############################################
+
   statement {
     sid    = "AWSCloudTrailAclCheck"
     effect = "Allow"
@@ -49,7 +56,10 @@ data "aws_iam_policy_document" "cloudtrail_s3_policy" {
     ]
   }
 
+  #############################################
   # Allow CloudTrail to write log files
+  #############################################
+
   statement {
     sid    = "AWSCloudTrailWrite"
     effect = "Allow"
@@ -74,11 +84,62 @@ data "aws_iam_policy_document" "cloudtrail_s3_policy" {
       values   = ["bucket-owner-full-control"]
     }
 
-    # CloudTrail now enforces SourceArn validation.
+    # CloudTrail enforces SourceArn validation
     condition {
       test     = "StringEquals"
       variable = "aws:SourceArn"
       values   = [aws_cloudtrail.management_trail.arn]
+    }
+  }
+
+  #############################################
+  # Allow AWS Config to verify bucket ACL
+  #############################################
+
+  statement {
+    sid    = "AWSConfigAclCheck"
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["config.amazonaws.com"]
+    }
+
+    actions = [
+      "s3:GetBucketAcl"
+    ]
+
+    resources = [
+      aws_s3_bucket.log_bucket.arn
+    ]
+  }
+
+  #############################################
+  # Allow AWS Config to write configuration data
+  #############################################
+
+  statement {
+    sid    = "AWSConfigWrite"
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["config.amazonaws.com"]
+    }
+
+    actions = [
+      "s3:PutObject"
+    ]
+
+    resources = [
+      "${aws_s3_bucket.log_bucket.arn}/AWSLogs/${data.aws_caller_identity.current.account_id}/*"
+    ]
+
+    # Required ACL condition
+    condition {
+      test     = "StringEquals"
+      variable = "s3:x-amz-acl"
+      values   = ["bucket-owner-full-control"]
     }
   }
 }
