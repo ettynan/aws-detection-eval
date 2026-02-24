@@ -33,7 +33,7 @@ All Terraform operations in this project assume explicit variable passing for `b
 ## Status
 - Milestone 1: Minimal AWS environment provisioned using Terraform (completed)
 
-## Milestone 1: Test Environment Provisioning and Baseline Verification
+## Milestone 1.1: Test Environment Provisioning and Baseline Verification
 
 Milestone 1 establishes a minimal, stable AWS test environment that serves as the foundation for all subsequent evaluation work. The purpose of this milestone is to verify that infrastructure provisioning functions correctly, that Terraform is authenticated to the intended AWS account, and that a small baseline environment exists before enabling any AWS-native detection services or executing threat simulations.
 
@@ -55,7 +55,7 @@ The environment created during this milestone is intentionally minimal. No AWS-n
 The test environment is now stable and ready for enabling AWS-native detection tools and performing controlled threat simulations in subsequent milestones.
 
 
-## Milestone 2: Enable AWS-Native Detection and Logging Services 
+## Milestone 1.2: Enable AWS-Native Detection and Logging Services 
 
 ### Step 1: IAM Access Analyzer Enabled
 
@@ -227,3 +227,61 @@ Two delivery channel errors occurred:
 - [x] Data and delivery section shows correct S3 bucket
 - [x] Terraform apply completed successfully
 - [x] No Config rules configured
+
+---
+
+### Step 5: Confirm Baseline
+
+- Baseline observation completed after infrastructure provisioning and service enablement.
+- Screenshots confirm that logs and configuration data are visible in AWS consoles.
+- No threat simulations or configuration changes were performed.
+
+---
+
+## Milestone 2
+### Preconditions
+- [x] Milestone 1 fully complete
+- [x] Baseline screenshots saved
+- [x] No active findings
+- [x] No config drift
+- [x] Terraform state clean (terraform plan shows no changes)
+
+### Scenario 1 Overly Permissive IAM Role
+#### Summary
+An IAM role was created with an inline policy granting wildcard permissions for both Action and Resource. The IAM console displayed built-in policy validation warnings indicating the configuration was overly permissive. GuardDuty, CloudTrail, AWS Config, and Access Analyzer were reviewed under default settings. None of the evaluated AWS-native detection tools generated a finding specifically tied to the creation of the overly permissive IAM role.
+### Checklist
+#### Action Performed
+- [x] Created IAM role with wildcard permissions (Action: star, Resource: star)
+
+#### GuardDuty
+- [x] Reviewed findings in us-west-2
+- [x] Confirmed no findings related to IAM role creation or excessive permissions
+
+#### CloudTrail
+-[x] Reviewed Event History in us-west-2 (no IAM events observed)
+-[x] Switched to us-east-1 (global service logging region)
+-[x] Located CreateRole, PutRolePolicy, DeleteRolePolicy, and DeleteRole events
+-[x] Confirmed IAM management events were logged
+
+#### AWS Config
+- [x] Verified recording was enabled and continuous
+- [x] Checked Resources view for IAM roles
+- [x] Ran advanced query for AWS::IAM::Role
+```
+SELECT resourceId, resourceType
+WHERE resourceType = 'AWS::IAM::Role'
+```
+- [x] Confirmed no IAM configuration items were returned
+
+#### Access Analyzer
+- [x] Reviewed account-level analyzer
+- [x] Confirmed zero active findings
+
+#### Postconditions
+- [x] Role test-overpermissive-role deleted
+- [x] GuardDuty shows no new findings
+- [x] Access Analyzer shows 0 active findings
+- [x] AWS Config shows 0 IAM roles (Resources view)
+- [x] Advanced query for AWS::IAM::Role returns no results
+
+### Scenario 2
