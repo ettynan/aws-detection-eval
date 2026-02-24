@@ -21,3 +21,9 @@ Thumbs.db
 # Log files
 *.log
 crash.log
+
+# Screenshots
+*.png
+*.jpg
+*.jpeg
+*.gif
