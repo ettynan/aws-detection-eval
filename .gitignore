@@ -27,3 +27,7 @@ crash.log
 *.jpg
 *.jpeg
 *.gif
+
+# Pic folders
+*post-cleanup
+*bucket-setup
