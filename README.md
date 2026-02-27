@@ -249,7 +249,6 @@ Two delivery channel errors occurred:
 ### Scenario 1 Overly Permissive IAM Role
 #### Summary
 An IAM role was created with an inline policy granting wildcard permissions for both Action and Resource. The IAM console displayed built-in policy validation warnings indicating the configuration was overly permissive. GuardDuty, CloudTrail, AWS Config, and Access Analyzer were reviewed under default settings. None of the evaluated AWS-native detection tools generated a finding specifically tied to the creation of the overly permissive IAM role.
-### Checklist
 #### Action Performed
 - [x] Created IAM role with wildcard permissions (Action: star, Resource: star)
 
@@ -284,4 +283,106 @@ WHERE resourceType = 'AWS::IAM::Role'
 - [x] AWS Config shows 0 IAM roles (Resources view)
 - [x] Advanced query for AWS::IAM::Role returns no results
 
-### Scenario 2
+### Scenario 2 Disabled MFA
+#### Summary
+An IAM user was created, assigned a virtual MFA device, and then had the MFA device removed. The removal completed successfully with no console warnings. GuardDuty, CloudTrail, AWS Config, and Access Analyzer were reviewed under default settings. CloudTrail logged the MFA deactivation and deletion events in the global IAM logging region (us-east-1), but none of the evaluated AWS-native detection tools generated a security finding specifically tied to MFA removal.
+
+#### Action Performed
+- [x] Created IAM user test-mfa-disabled-user
+- [x] Enabled virtual MFA device
+- [x] Removed MFA device
+
+#### GuardDuty
+- [x] No findings related to MFA removal
+
+#### CloudTrail
+
+- [x] Reviewed Event History in us-west-2 (no IAM events observed)
+- [x] Switched to us-east-1 (global service logging region)
+- [x] Located DeactivateMFADevice and DeleteVirtualMFADevice events
+- [x] Confirmed IAM management events were logged
+
+#### AWS Config
+- [x] Checked Resources view for IAM users
+- [x] Ran advanced query for AWS::IAM::User
+
+```
+SELECT resourceId, resourceType
+WHERE resourceType = 'AWS::IAM::User'
+```
+- [x] Confirmed no IAM configuration items were returned
+
+#### Access Analyzer
+- [x] Confirmed zero active findings
+
+#### Postconditions
+- [x] User test-mfa-disabled-user deleted
+- [x] GuardDuty shows no new findings
+- [x] Access Analyzer shows 0 active findings
+- [x] Advanced query for AWS::IAM::User returns no results
+
+### Scenario 3 Public S3 Bucket Exposure
+#### Summary
+An S3 bucket was created and configured to allow public anonymous access. Under default configuration, multiple AWS-native services surfaced the exposure. CloudTrail recorded the associated S3 management events in us-west-2. AWS Config displayed the bucket in the regional Resource Inventory. Access Analyzer identified the bucket as publicly accessible. GuardDuty generated a High severity finding indicating public anonymous access to the bucket.
+
+#### Action Performed
+- [x] Created S3 bucket test-public-s3-bucket-expose-et
+- [x] Modified bucket policy to allow public anonymous access
+- [x] Adjusted public access block settings
+
+#### GuardDuty
+- [x] Findings -> High severity finding for public anonymous access
+
+#### CloudTrail
+- [x] Located CreateBucket event
+- [x] Located PutBucketPolicy event
+- [x] Located PutBucketPublicAccessBlock event
+- [x] Confirmed S3 management events were logged
+
+#### AWS Config
+ - [x] Checked Resources view for AWS S3 Bucket
+ - [x] Findings -> bucket visible in Resource Inventory
+
+#### Access Analyzer
+ - [x] Findings -> listed under Key resources with public access marked as “Allow”
+
+#### Postconditions
+- [x] Bucket test-public-s3-bucket-expose-et deleted
+- [x] GuardDuty finding archived
+- [x] Access Analyzer shows 0 active findings
+- [x] AWS Config no longer lists the bucket in Resources view
+
+### Scenario 4 Privilege Escalation Attempt
+#### Summary
+An IAM user was created and subsequently granted the AdministratorAccess managed policy to simulate privilege escalation. CloudTrail recorded both the CreateUser and AttachUserPolicy management events. GuardDuty, AWS Config, and Access Analyzer were reviewed under default settings. None of the evaluated AWS-native detection tools generated a finding specifically tied to the attachment of AdministratorAccess.
+
+#### Action Performed
+ - [x] Created IAM user test-privilege-escalation-user
+ - [x] Attached AdministratorAccess managed policy
+
+#### GuardDuty
+- [x] No findings related to AdministratorAccess attachment
+
+#### CloudTrail
+- [x] Switched to us-east-1 (global service logging region)
+- [x] Located CreateUser event
+- [x] Located AttachUserPolicy event
+- [x] Confirmed IAM management events were logged
+
+#### AWS Config
+- [x] Ran advanced query for AWS::IAM::User
+
+```
+SELECT resourceId, configuration.attachedManagedPolicies
+WHERE resourceType = 'AWS::IAM::User'
+AND resourceId = 'test-privilege-escalation-user'
+```
+- [x] Findings -> no IAM configuration items were returned
+
+#### Access Analyzer
+ - [x] Findings -> zero active findings
+
+#### Postconditions
+- [x] User test-privilege-escalation-user deleted
+- [x] GuardDuty shows no new findings
+- [x] Access Analyzer shows 0 active findings
