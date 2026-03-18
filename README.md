@@ -380,9 +380,47 @@ AND resourceId = 'test-privilege-escalation-user'
 - [x] Findings -> no IAM configuration items were returned
 
 #### Access Analyzer
- - [x] Findings -> zero active findings
+- [x] Findings -> zero active findings
 
 #### Postconditions
 - [x] User test-privilege-escalation-user deleted
+- [x] GuardDuty shows no new findings
+- [x] Access Analyzer shows 0 active findings
+
+
+### Scenario 5 Suspicious Login Activity
+#### Summary
+An IAM user was used to simulate authentication activity across multiple conditions, including geographic deviation, failed authentication attempts, and repeated login behavior. API-based authentication was performed from both a local Washington IP and a foreign IP (Frankfurt). Successful API calls from both locations were recorded in CloudTrail. Failed API authentication attempts using incorrect credentials resulted in SignatureDoesNotMatch errors and were not logged. Console-based authentication testing included both limited failed attempts and 15 consecutive failed login attempts, all of which resulted in identical authentication error messages. CloudTrail Event History showed no ConsoleLogin events for the IAM user during the evaluated window. GuardDuty, AWS Config, and Access Analyzer were reviewed under default settings and produced no findings related to any authentication activity.
+
+#### Action Performed
+- [x] Created IAM user test-suspicious-auth-user
+- [x] Generated access keys for CLI use
+- [x] Executed baseline API call from Washington IP
+- [x] Executed API calls from foreign IP (Frankfurt)
+- [x] Performed failed API authentication attempts using incorrect secret
+- [x] Performed successful API authentication using correct credentials
+- [x] Performed 2 failed console login attempts
+- [x] Executed 100 failed API authentication attempts using invalid secret key
+- [x] Performed 15 consecutive failed console login attempts in attempt for lockout
+
+#### GuardDuty
+- [x] No findings related to foreign IP activity, failed authentication attempts, or repeated login attempts
+
+#### CloudTrail
+- [x] Located ListUsers events for successful API calls from both local and foreign IPs
+- [x] Confirmed successful authentication events were logged
+- [x] Confirmed failed API authentication attempts were not logged
+- [x] Confirmed no ConsoleLogin events observed for test-suspicious-auth-user
+
+#### AWS Config
+- [x] No configuration changes recorded
+
+#### Access Analyzer
+- [x] No findings generated
+
+#### Postconditions
+- [x] IAM user deleted
+- [x] Access keys deleted
+- [x] DigitalOcean droplet destroyed
 - [x] GuardDuty shows no new findings
 - [x] Access Analyzer shows 0 active findings
